@@ -37,7 +37,7 @@ M.images = function (opts)
         sorter = config.generic_sorter(opts),
 
         previewer = previewers.new_buffer_previewer ({
-            title = 'Image Details',
+            title = 'Imagens Docker',
             define_preview = function (self, entry)
                 local data = {
                     '```lua',
@@ -71,13 +71,36 @@ M.images = function (opts)
     :find()
 end
 
+-- Função de autocompletar
+local function dockerComplete(ArgLead, CmdLine, CursorPos)
+    local completions = {"Images"}
+    local matches = {}
+    for _, opt in ipairs(completions) do
+        if opt:match("^" .. ArgLead) then
+            table.insert(matches, opt)
+        end
+    end
+    return matches
+end
+
+-- Lista de comandos disponíveis
 vim.api.nvim_create_user_command(
-  'DockerImages',
-  function()
-      M.images()
+  'Docker',
+  function(opts)
+      local args = opts.fargs
+      local command = table.concat(args, " ")
+      
+      if command == "Images" then  
+        M.images()
+      else
+        print("Comando não encontrado")
+      end
   end,
-  {desc = "Retorna uma lista com suas imagens Docker"}
+  {nargs = "?", complete = dockerComplete}
 )
+
+-- Mapeamento de teclas
+vim.api.nvim_set_keymap('n', '<Leader>di', ':Docker Images<CR>', { noremap = true, silent = true })
 
 M.setup = function(config)
     M.config = config

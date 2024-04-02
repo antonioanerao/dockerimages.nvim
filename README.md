@@ -12,7 +12,13 @@ use({
 ```
 
 ### Comando para ver imagens
+
 Aperta : no seu nvim e digite...
-```bash
-:DockerImages
+```lua
+:Docker Images
+```
+### Atalho para ver imagens
+
+```lua
+<Leader>di
 ```

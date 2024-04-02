@@ -40,12 +40,14 @@ M.images = function (opts)
             title = 'Image Details',
             define_preview = function (self, entry)
                 local data = {
+                    '```lua',
                     '# ' .. entry.display,
                     '',
                     '*ID*: ' .. entry.value.ID,
                     '*Tag*: ' .. entry.value.Tag,
                     '*Containers*: ' .. entry.value.Containers,
                     '*Size*: ' .. entry.value.Size,
+                    '```',
                 }
                 vim.api.nvim_buf_set_lines(
                     self.state.bufnr,

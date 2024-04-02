@@ -5,25 +5,23 @@ local finders = require('telescope.finders')
 local previewers = require('telescope.previewers')
 local utils = require('telescope.previewers.utils')
 local config = require('telescope.config').values
-
 local M = {}
 
-M.show_docker_images = function (opts)
-    pickers.
-        new(opts, {
+M.images = function (opts)
+    pickers
+        .new(opts, {
             finder = finders.new_async_job({
                 command_generator = function ()
                     return {"docker", "images", "--format", "json"}
                 end,
 
-
                 entry_maker = function (entry)
-                    local parsed = vim.json.decode(entry)
-                    if parsed then
+                    local image = vim.json.decode(entry)
+                    if image then
                         return {
-                            value = parsed,
-                            display = parsed.Repository,
-                            ordinal = parsed.Repository .. ':' .. parsed.Tag,
+                            value = image,
+                            display = image.Repository,
+                            ordinal = image.Repository .. ':' .. image.Tag,
                         }
                     end
                 end,
@@ -32,20 +30,22 @@ M.show_docker_images = function (opts)
         sorter = config.generic_sorter(opts),
 
         previewer = previewers.new_buffer_previewer ({
-            title = 'Docker Images Previewer',
+            title = 'Image Details',
             define_preview = function (self, entry)
+                local data = {
+                    '# ' .. entry.display,
+                    '',
+                    '*ID*: ' .. entry.value.ID,
+                    '*Tag*: ' .. entry.value.Tag,
+                    '*Containers*: ' .. entry.value.Containers,
+                    '*Size*: ' .. entry.value.Size,
+                }
                 vim.api.nvim_buf_set_lines(
                     self.state.bufnr,
                     0,
                     0, 
                     true, 
-                    vim.tbl_flatten({
-                        "# " .. entry.value.ID,
-                        "",
-                        "```lua",
-                        vim.split(vim.inspect(entry.value), "\n"),
-                        "```",
-                    })
+                    data
                 )
                 utils.highlighter(self.state.bufnr, 'markdown')
             end,
@@ -62,6 +62,12 @@ M.show_docker_images = function (opts)
     :find()
 end
 
-M.show_docker_images()
+vim.api.nvim_create_user_command(
+  'DockerImages',
+  function()
+      M.images()
+  end,
+  {desc = "Retorna uma lista com suas imagens Docker"}
+)
 
 return M

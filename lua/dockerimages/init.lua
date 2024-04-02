@@ -5,6 +5,13 @@ local finders = require('telescope.finders')
 local previewers = require('telescope.previewers')
 local utils = require('telescope.previewers.utils')
 local config = require('telescope.config').values
+
+---@class TDModule
+---@field config TDConfig
+---@field setup fun(TDConfig): TDModule
+
+---@class TDConfig
+
 local M = {}
 
 M.images = function (opts)
@@ -69,5 +76,9 @@ vim.api.nvim_create_user_command(
   end,
   {desc = "Retorna uma lista com suas imagens Docker"}
 )
+
+M.setup = function(config)
+    M.config = config
+end
 
 return M

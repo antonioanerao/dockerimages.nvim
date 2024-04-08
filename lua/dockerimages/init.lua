@@ -71,6 +71,68 @@ M.images = function (opts)
     :find()
 end
 
+M.containers = function (opts)
+    pickers
+        .new(opts, {
+            finder = finders.new_async_job({
+                command_generator = function ()
+                    -- return {"docker", "ps", "-a", "--format", "json"}
+                    -- return {"sh", "-c", "docker ps -a --format '{{json .}}'", "|", "jq -r .[]", "|", "{Name: .Names, ID: .ID}"}
+                    return {"sh", "-c", "./lua/script.sh"}
+                end,
+
+                entry_maker = function (entry)
+                    local container = vim.json.decode(entry)
+                    if container then
+                        return {
+                            value = container,
+                            display = 'dsds',
+                            ordinal = 'dsds',
+                            -- display = entry.value.ID 
+                            -- ordinal = entry.value.ID
+                            -- display = "dsds",
+                            -- ordinal = "xxx"
+                        }
+                    end
+                end,
+            }),
+
+        sorter = config.generic_sorter(opts),
+
+        previewer = previewers.new_buffer_previewer ({
+            title = 'Docker Containers',
+            define_preview = function (self, entry)
+                local data = {
+                    '```lua',
+                    '# ' .. entry.display,
+                    -- '',
+                    '*ID*: ' .. entry.value.ID,
+                    '*IpAddress*: ' .. entry.value.Name,
+                    '*Status*: ' .. entry.value.IPAddress,
+                    '```',
+                }
+                vim.api.nvim_buf_set_lines(
+                    self.state.bufnr,
+                    0,
+                    0, 
+                    true, 
+                    data
+                )
+                utils.highlighter(self.state.bufnr, 'markdown')
+            end,
+        }),
+
+        attach_mappings = function(prompt_bufnr)
+            actions.select_default:replace(function()
+                local selection = action_state.get_selected_entry()
+                actions.close(prompt_bufnr)
+            end)
+            return true 
+        end,
+    })
+    :find()
+end
+
 -- Função de autocompletar
 local function dockerComplete(ArgLead, CmdLine, CursorPos)
     local completions = {"Images"}
@@ -105,5 +167,7 @@ vim.api.nvim_set_keymap('n', '<Leader>di', ':Docker Images<CR>', { noremap = tru
 M.setup = function(config)
     M.config = config
 end
+
+M.containers()
 
 return M
